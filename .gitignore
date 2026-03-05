@@ -1,0 +1,29 @@
+# Python environment
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Results
+data/raw/
+data/processed/
+result/
+*.csv
+*.zip
+*.tar.gz
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Model & Pickles
+*.pkl
+*.model
+*.h5
+
+# IDE & System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
