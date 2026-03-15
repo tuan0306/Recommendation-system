@@ -17,11 +17,23 @@ def get_movie_title_by_id(mapping,id):
     except:
         return 'Unknown Movie'
     
-def get_movie_id_by_title(mapping,title):
+def search_all_movies_by_title(mapping,title):
     try:
         matches=mapping[mapping['movie title'].str.contains(title,case=False,na=False)]
-        if not matches.empty():
-            return matches
+        if not matches.empty:
+            return matches['movie title'].to_dict()
+        else:
+            return {}
     except Exception:
-        return None
+        return {}
+    
+def get_top_rated_movies(ratings_data,min_ratings=50,top=10):
+    df=pd.DataFrame(ratings_data,columns=['user_id','item_id','rating','timestamp'])
+    stats=df.groupby('item_id').agg(
+        rating_mean=('rating','mean'),
+        rating_count=('rating','count')
+    ).reset_index()
+    top_items=stats[stats['rating_count']>=min_ratings]
+    top_items=top_items.sort_values('rating_mean',ascending=False).head(top)
+    return top_items
     

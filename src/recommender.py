@@ -133,7 +133,7 @@ class NBCF:
         recommended_items=np.argsort(a)[-top:][::-1]
         return recommended_items
     
-    def recommend_simiar_items(self,i,top=10):
+    def recommend_similar_items(self,i,top=10):
         if self.uuCF == 1:
             raise ValueError("Method only available for Item-Item CF (uuCF=0).")
         sim_scores=self.S[i]
