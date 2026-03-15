@@ -5,5 +5,4 @@ seaborn
 scikit-learn
 streamlit
 scipy
-streamlit
 altair<5

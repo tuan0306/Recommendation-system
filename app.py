@@ -139,7 +139,7 @@ elif st.session_state.current_view == 'logged_in':
         history_list = [f"**{get_movie_title_by_id(mapping_df, rated_items[i])}** (⭐ {rated_scores[i]})" for i in top_rated_idx]
         st.info(" | ".join(history_list))
     
-    st.divider() # Đường kẻ ngang
+    st.markdown("---") # Đường kẻ ngang
     
     # 2. Xử lý chức năng được chọn
     if app_mode == "🎯 Gợi ý cho tôi":
@@ -181,7 +181,7 @@ elif st.session_state.current_view == 'guest':
             count = int(row['rating_count'])
             st.markdown(f"**{title}**<br>⭐ {score:.1f} ({count} rate)", unsafe_allow_html=True)
             
-    st.divider()
+    st.markdown("---")
     
     # 2. Luôn hiển thị tính năng Tìm phim
     render_search_movie_ui()
