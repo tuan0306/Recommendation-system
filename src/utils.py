@@ -16,3 +16,12 @@ def get_movie_title_by_id(mapping,id):
         return mapping.loc[id,'movie title']
     except:
         return 'Unknown Movie'
+    
+def get_movie_id_by_title(mapping,title):
+    try:
+        matches=mapping[mapping['movie title'].str.contains(title,case=False,na=False)]
+        if not matches.empty():
+            return matches
+    except Exception:
+        return None
+    

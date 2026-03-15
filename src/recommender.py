@@ -139,4 +139,40 @@ class NBCF:
         sim_scores=self.S[i]
         similar_items=np.argsort(sim_scores)[-(top+1):-1][::-1]
         return similar_items
-            
+    
+    
+class HybridRecommender:
+    def __init__(self,cb_model,cf_model,alpha=0.5):
+        self.cb_model=cb_model
+        self.cf_model=cf_model
+        self.alpha=alpha
+    def predict_test(self,test):
+        cf_predict=self.cf_model.predict_test(test)
+        n_tests=test.shape[0]
+        cb_predict=np.zeros(n_tests)
+        for idx in range(n_tests):
+            u=test[idx,0]
+            i=test[idx,1]
+            cb_predict[idx]=self.cb_model.Yhat[i,u]
+        return self.alpha*cb_predict+(1-self.alpha)*cf_predict
+    def fit(self,ratings_data):
+        self.ratings_data=ratings_data
+    def recommend_for_user(self,user_id,top=10):
+        rated_items,_=get_items_rated_by_user(self.ratings_data,user_id)
+        rated_items=rated_items.tolist()
+        
+        n_items=self.cb_model.Yhat.shape[0]
+        hybrid_scores=np.zeros(n_items)
+        cb_scores=self.cb_model.Yhat[:,user_id]
+        for i in range(n_items):
+            if i in rated_items:
+                hybrid_scores[i]=-1e9
+            else:
+                cf_score=self.cf_model.predict(user_id,i,normalized=0)
+                cb_score=cb_scores[i]
+                hybrid_scores[i]=self.alpha*cb_score+(1-self.alpha)*cf_score
+        recommend_items=np.argsort(hybrid_scores)[-top:][::-1]
+        return recommend_items
+    def RMSE(self,ratings_data,prediction):
+        y_true=ratings_data[:,2]
+        return np.sqrt(mean_squared_error(y_true,prediction))          
