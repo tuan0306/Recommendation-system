@@ -85,4 +85,3 @@ streamlit run app.py
 
 ## 📈 Future Improvements
 * Use Matrix Factorization (SVD) for advanced Collabrative Filtering
-* Use API to fetch real-time movie posters for UI
