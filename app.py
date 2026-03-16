@@ -6,7 +6,7 @@ import sys
 
 # Import các module từ thư mục src/
 sys.path.append('.')
-from src.utils import load_movie_mapping, search_all_movies_by_title, get_movie_title_by_id, get_items_rated_by_user, get_top_rated_movies
+from src.utils import load_movie_mapping, search_all_movies_by_title, get_movie_title_by_id, get_items_rated_by_user, get_top_rated_movies, fetch_poster, get_ratings_of_a_movie, render_movie_grid
 from src.recommender import ContentBasedFiltering, NBCF, HybridRecommender
 
 # --- CẤU HÌNH TRANG ---
@@ -64,28 +64,43 @@ def render_search_movie_ui():
                 # Tách lấy phần ID (nằm trước dấu "-")
                 movie_id = int(selected_option.split(" - ")[0])
                 movie_title = matches[movie_id]
-                
-                st.markdown(f"#### Đang hiển thị mạng lưới gợi ý cho: **{movie_title}**")
-                
-                # Hiển thị 2 cột thuật toán như cũ
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.subheader("💡 Phim cùng thể loại (CB)")
-                    try:
-                        cb_sim_items = cb_model.recommend_similar_items(movie_id, top=10)
-                        for i, m_id in enumerate(cb_sim_items, 1):
-                            st.write(f"{i}. {get_movie_title_by_id(mapping_df, m_id)}")
-                    except:
-                        st.warning("Mô hình CB chưa hỗ trợ tính năng này.")
 
-                with col2:
-                    st.subheader("👥 Người khác cũng xem (CF)")
+                col_img, col_info = st.columns([1, 3])
+                selected_title = str(get_movie_title_by_id(mapping_df, movie_id)).strip()
+                selected_poster = fetch_poster(selected_title)
+                with col_img:
+                    st.image(selected_poster, use_container_width=True)
+                with col_info:
+                    st.markdown(f"## {selected_title}")
                     try:
-                        cf_sim_items = cf_model.recommend_similar_items(movie_id, top=10)
-                        for i, m_id in enumerate(cf_sim_items, 1):
-                            st.write(f"{i}. {get_movie_title_by_id(mapping_df, m_id)}")
-                    except:
-                        st.warning("Mô hình CF chưa hỗ trợ tính năng này.")
+                        movie_reviews = get_ratings_of_a_movie(ratings_train,movie_id)
+                        if len(movie_reviews) > 0:
+                            avg_score = round(movie_reviews.mean(), 1)
+                            total_votes = len(movie_reviews)
+                            st.markdown(f"**⭐ Điểm đánh giá:** {avg_score}/5.0 *(từ {total_votes} người dùng)*")
+                        else:
+                            st.markdown("**⭐ Điểm đánh giá:** 0 lượt đánh giá")
+                    except Exception as e:
+                        st.markdown("**⭐ Điểm đánh giá:** Chưa có dữ liệu")
+                st.markdown("---")
+                    
+                tab_cb, tab_cf = st.tabs(["🤖 Dựa trên Nội dung (Content-Based)", "👥 Dựa trên Cộng đồng (Collaborative)"])
+
+                # 2. Xây dựng nội dung cho Tab 1 (Khi người dùng bấm vào ô CB)
+                with tab_cb:
+                    st.markdown("#### 🎬 Các phim có cùng chủ đề, thể loại")
+                    with st.spinner("Đang phân tích nội dung phim..."):
+                        # Lấy danh sách phim từ thuật toán CB
+                        cb_recommendations = cb_model.recommend_similar_items(movie_id, top=10)
+                        render_movie_grid(cb_recommendations, mapping_df)
+
+                # 3. Xây dựng nội dung cho Tab 2 (Khi người dùng bấm vào ô CF)
+                with tab_cf:
+                    st.markdown("#### 🍿 Những người thích phim này cũng xem")
+                    with st.spinner("Đang tổng hợp dữ liệu cộng đồng..."):
+                        # Lấy danh sách phim từ thuật toán CF
+                        cf_recommendations = cf_model.recommend_similar_items(movie_id, top=10)
+                        render_movie_grid(cf_recommendations, mapping_df)
         else:
             st.error(f"Rất tiếc, không có bộ phim nào chứa từ khóa '{movie_query}'. Vui lòng thử lại!")
 
@@ -136,18 +151,60 @@ elif st.session_state.current_view == 'logged_in':
     if len(rated_items) > 0:
         st.markdown("### 🕒 Phim bạn đánh giá cao nhất")
         top_rated_idx = np.argsort(rated_scores)[-5:][::-1]
-        history_list = [f"**{get_movie_title_by_id(mapping_df, rated_items[i])}** (⭐ {rated_scores[i]})" for i in top_rated_idx]
-        st.info(" | ".join(history_list))
+        cols = st.columns(5)
+        for col_idx, idx_in_array in enumerate(top_rated_idx):
+            # Lấy tên và dọn khoảng trắng
+            title = str(get_movie_title_by_id(mapping_df, rated_items[idx_in_array])).strip()
+            score = rated_scores[idx_in_array]
+            
+            # Lấy link ảnh
+            poster_url = fetch_poster(title)
+            
+            with cols[col_idx]:
+                # 1. In ảnh poster
+                st.markdown(
+                    f'''
+                    <img src="{poster_url}" 
+                        style="width: 100%; 
+                                height: 250px; 
+                                object-fit: cover; 
+                                border-radius: 8px; 
+                                margin-bottom: 5px;">
+                    ''',
+                    unsafe_allow_html=True
+                )
+                # 2. In tên phim và điểm số
+                st.markdown(f"**{title}**")
+                st.markdown(f"⭐ **{score}/5**")
     
     st.markdown("---") # Đường kẻ ngang
     
     # 2. Xử lý chức năng được chọn
     if app_mode == "🎯 Gợi ý cho tôi":
-        st.markdown(f"### ✨ Top 10 Đề xuất dành riêng cho bạn (Hybrid System)")
-        with st.spinner("Hệ thống đang phân tích sở thích..."):
-            recommendations = hybrid_system.recommend_for_user(u_id, top=10)
-            for i, m_id in enumerate(recommendations, 1):
-                st.write(f"**{i}. {get_movie_title_by_id(mapping_df, m_id)}**")
+        st.markdown(f"### ✨ Top 10 Đề xuất dành riêng cho bạn")
+        if st.button("🚀 Bấm vào đây để AI tìm phim cho bạn"):
+            with st.spinner("Hệ thống đang phân tích sở thích và tải hình ảnh..."):
+                recommendations = hybrid_system.recommend_for_user(u_id, top=10)
+                for i in range(0, len(recommendations), 5):
+                    cols = st.columns(5) 
+                    row_movies = recommendations[i : i+5] 
+                    for col_idx, m_id in enumerate(row_movies):
+                        title = str(get_movie_title_by_id(mapping_df, m_id)).strip()
+                        poster_url = fetch_poster(title)
+                        with cols[col_idx]:
+                            # 1. In ảnh
+                            st.markdown(
+                                f'''
+                                <img src="{poster_url}" 
+                                style="width: 100%; 
+                                height: 300px; 
+                                object-fit: cover; 
+                                border-radius: 8px; 
+                                margin-bottom: 10px;">
+                                ''',
+                                unsafe_allow_html=True
+                                )
+                            st.markdown(f"**{title}**")
             
     elif app_mode == "🔍 Tìm phim tương tự":
         render_search_movie_ui()
@@ -169,17 +226,14 @@ elif st.session_state.current_view == 'guest':
     st.caption("Dựa trên bình chọn của cộng đồng (yêu cầu trên 50 lượt đánh giá)")
     
     top_movies_df = cached_top_rated_movies(ratings_train, mapping_df)
-    
-    # Trình bày dạng các thẻ (columns) cho đẹp mắt
-    cols = st.columns(5)
-    for idx, (index, row) in enumerate(top_movies_df.iterrows()):
-        col_idx = idx % 5
-        with cols[col_idx]:
-            item_id = int(row['item_id'])
-            title = get_movie_title_by_id(mapping_df, item_id)
-            score = row['rating_mean']
-            count = int(row['rating_count'])
-            st.markdown(f"**{title}**<br>⭐ {score:.1f} ({count} rate)", unsafe_allow_html=True)
+    top_movies_list = []
+    for index, row in top_movies_df.iterrows():
+        item_id = int(row['item_id'])
+        score = row['rating_mean']
+        count = int(row['rating_count'])
+        subtitle_text = f"⭐ {score:.1f} ({count} rate)"
+        top_movies_list.append((item_id,subtitle_text))
+    render_movie_grid(top_movies_list, mapping_df, has_subtitle=True)
             
     st.markdown("---")
     

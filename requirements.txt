@@ -5,3 +5,4 @@ seaborn
 scikit-learn
 streamlit>=1.28.0
 scipy
+requests
