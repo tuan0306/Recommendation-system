@@ -13,7 +13,7 @@ Movie Recommendation Engine built with Python and Streamlit. This project use th
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://tuan-movie-recsys.streamlit.app/)
 
-👉 **Experience the live web application here:** https://tuan-movie-recsys.streamlit.app/
+👉 **[Experience the live web application here](https://tuan-movie-recsys.streamlit.app/)**
 
 ---
 
