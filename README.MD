@@ -29,6 +29,14 @@ The application has a dynamic UI that adapts to the user's authentication status
 
 ---
 
+## 📊 Dataset
+
+This project utilizes the classic **MovieLens 100K Dataset** provided by GroupLens Research. It contains 100,000 ratings from 1,000 users on 1,700 movies.
+
+👉 **[Download the MovieLens 100K Dataset here](https://grouplens.org/datasets/movielens/100k/)**
+
+---
+
 ## 🧠 The Algorithm: Weighted Hybrid Approach
 
 To overcome the inherent limitations of standalone recommendation models (such as the Cold-Start problem in Collaborative Filtering and the "Circled Filter" in Content-Based models), this system implements a **Weighted Hybrid Recommender**.
