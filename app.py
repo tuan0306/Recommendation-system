@@ -4,19 +4,18 @@ import numpy as np
 import joblib
 import sys
 
-# Import các module từ thư mục src/
 sys.path.append('.')
 from src.utils import load_movie_mapping, search_all_movies_by_title, get_movie_title_by_id, get_items_rated_by_user, get_top_rated_movies, fetch_poster, get_ratings_of_a_movie, render_movie_grid
 from src.recommender import ContentBasedFiltering, NBCF, HybridRecommender
 
-# --- CẤU HÌNH TRANG ---
+# Cau hinh trang
 st.set_page_config(page_title="Hệ Thống Gợi Ý Phim", page_icon="🎬", layout="wide")
 if 'current_view' not in st.session_state:
-    st.session_state.current_view = 'login' # Các view: 'login', 'logged_in', 'guest'
+    st.session_state.current_view = 'login' # Cac trang thai: 'login', 'logged_in', 'guest'
 if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 
-# --- HÀM LOAD DỮ LIỆU (Cache để không phải load lại mỗi lần click) ---
+# ham load du lieu (co cache)
 @st.cache_resource
 def load_system():
     # 1. Load Mapping Data
@@ -30,7 +29,7 @@ def load_system():
     
     return mapping_df, ratings_train, cb_model, cf_model, hybrid_system
 
-# Khởi chạy hàm load
+# chay ham load
 with st.spinner('Đang tải mô hình hệ thống...'):
     mapping_df, ratings_train, cb_model, cf_model, hybrid_system = load_system()
 
@@ -39,12 +38,9 @@ def cached_top_rated_movies(_ratings_data, _mapping_df, min_ratings=50, top_n=10
     """Lấy top phim có điểm trung bình cao nhất (điều kiện: số người đánh giá >= 50)"""
     return get_top_rated_movies(_ratings_data,min_ratings,top_n)
 
-# --- COMPONENT: GIAO DIỆN TÌM KIẾM PHIM ---
-# Đóng gói giao diện tìm kiếm vào hàm để dùng chung cho cả User và Guest
+# giao dien tim kiem phim
 def render_search_movie_ui():
     st.markdown("### 🔍 Khám phá Phim Tương Tự")
-    
-    # Giao diện tự động phản ứng khi có người nhập từ khóa (không cần nút bấm)
     movie_query = st.text_input("Nhập tên phim bạn yêu thích và ấn Enter (VD: Toy Story, Star...):")
     
     if movie_query:
@@ -52,16 +48,11 @@ def render_search_movie_ui():
         
         if matches:
             st.success(f"🎉 Tuyệt vời! Tìm thấy {len(matches)} phim khớp với từ khóa '{movie_query}'.")
-            
-            # Tạo danh sách lựa chọn cho Selectbox (Format: "ID - Tên phim")
             options = [f"{m_id} - {title}" for m_id, title in matches.items()]
             selected_option = st.selectbox("👇 Vui lòng chọn một bộ phim chính xác từ danh sách dưới đây:", options)
             
-            # Xử lý khi người dùng chọn 1 phim từ dropdown
             if selected_option:
                 st.divider()
-                
-                # Tách lấy phần ID (nằm trước dấu "-")
                 movie_id = int(selected_option.split(" - ")[0])
                 movie_title = matches[movie_id]
 
@@ -86,28 +77,22 @@ def render_search_movie_ui():
                     
                 tab_cb, tab_cf = st.tabs(["🤖 Dựa trên Nội dung (Content-Based)", "👥 Dựa trên Cộng đồng (Collaborative)"])
 
-                # 2. Xây dựng nội dung cho Tab 1 (Khi người dùng bấm vào ô CB)
                 with tab_cb:
                     st.markdown("#### 🎬 Các phim có cùng chủ đề, thể loại")
                     with st.spinner("Đang phân tích nội dung phim..."):
-                        # Lấy danh sách phim từ thuật toán CB
                         cb_recommendations = cb_model.recommend_similar_items(movie_id, top=10)
                         render_movie_grid(cb_recommendations, mapping_df)
 
-                # 3. Xây dựng nội dung cho Tab 2 (Khi người dùng bấm vào ô CF)
                 with tab_cf:
                     st.markdown("#### 🍿 Những người thích phim này cũng xem")
                     with st.spinner("Đang tổng hợp dữ liệu cộng đồng..."):
-                        # Lấy danh sách phim từ thuật toán CF
                         cf_recommendations = cf_model.recommend_similar_items(movie_id, top=10)
                         render_movie_grid(cf_recommendations, mapping_df)
         else:
             st.error(f"Rất tiếc, không có bộ phim nào chứa từ khóa '{movie_query}'. Vui lòng thử lại!")
 
 
-# ==========================================
-# MÀN HÌNH 1: ĐĂNG NHẬP (LOGIN SCREEN)
-# ==========================================
+# man hinh dang nhap
 if st.session_state.current_view == 'login':
     st.title("🍿 Chào mừng đến với Hệ Thống Gợi Ý Phim")
     st.markdown("Vui lòng định danh để nhận được những gợi ý cá nhân hóa tốt nhất.")
@@ -119,22 +104,18 @@ if st.session_state.current_view == 'login':
         if st.button("Đăng nhập vào hệ thống", type="primary"):
             st.session_state.user_id = user_input
             st.session_state.current_view = 'logged_in'
-            st.rerun() # Tải lại trang ngay lập tức để chuyển màn hình
+            st.rerun()
             
     with col2:
         st.success("🌍 Dành cho khách")
-        st.markdown("<br>", unsafe_allow_html=True) # Tạo khoảng trống cho cân đối
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Tiếp tục mà không đăng nhập"):
             st.session_state.current_view = 'guest'
             st.rerun()
 
-# ==========================================
-# MÀN HÌNH 2: LOGGED-IN USER (ĐÃ ĐĂNG NHẬP)
-# ==========================================
+# man hinh khi da dang nhap
 elif st.session_state.current_view == 'logged_in':
     u_id = st.session_state.user_id
-    
-    # --- Sidebar điều hướng ---
     st.sidebar.title(f"👤 Xin chào, User {u_id}")
     if st.sidebar.button("🚪 Đăng xuất"):
         st.session_state.current_view = 'login'
@@ -146,22 +127,18 @@ elif st.session_state.current_view == 'logged_in':
     
     st.title("Bảng Điều Khiển Cá Nhân")
     
-    # 1. Hiển thị lịch sử (Phim rate gần đây/cao nhất)
     rated_items, rated_scores = get_items_rated_by_user(ratings_train, u_id)
     if len(rated_items) > 0:
         st.markdown("### 🕒 Phim bạn đánh giá cao nhất")
         top_rated_idx = np.argsort(rated_scores)[-5:][::-1]
         cols = st.columns(5)
         for col_idx, idx_in_array in enumerate(top_rated_idx):
-            # Lấy tên và dọn khoảng trắng
             title = str(get_movie_title_by_id(mapping_df, rated_items[idx_in_array])).strip()
             score = rated_scores[idx_in_array]
             
-            # Lấy link ảnh
             poster_url = fetch_poster(title)
             
             with cols[col_idx]:
-                # 1. In ảnh poster
                 st.markdown(
                     f'''
                     <img src="{poster_url}" 
@@ -173,13 +150,11 @@ elif st.session_state.current_view == 'logged_in':
                     ''',
                     unsafe_allow_html=True
                 )
-                # 2. In tên phim và điểm số
                 st.markdown(f"**{title}**")
                 st.markdown(f"⭐ **{score}/5**")
     
-    st.markdown("---") # Đường kẻ ngang
+    st.markdown("---")
     
-    # 2. Xử lý chức năng được chọn
     if app_mode == "🎯 Gợi ý cho tôi":
         st.markdown(f"### ✨ Top 10 Đề xuất dành riêng cho bạn")
         if st.button("🚀 Bấm vào đây để AI tìm phim cho bạn"):
@@ -192,7 +167,6 @@ elif st.session_state.current_view == 'logged_in':
                         title = str(get_movie_title_by_id(mapping_df, m_id)).strip()
                         poster_url = fetch_poster(title)
                         with cols[col_idx]:
-                            # 1. In ảnh
                             st.markdown(
                                 f'''
                                 <img src="{poster_url}" 
@@ -209,11 +183,8 @@ elif st.session_state.current_view == 'logged_in':
     elif app_mode == "🔍 Tìm phim tương tự":
         render_search_movie_ui()
 
-# ==========================================
-# MÀN HÌNH 3: GUEST (CHƯA ĐĂNG NHẬP)
-# ==========================================
+# guest
 elif st.session_state.current_view == 'guest':
-    # --- Sidebar điều hướng ---
     st.sidebar.title("🌍 Xin chào, Khách vãng lai")
     if st.sidebar.button("🔑 Trở lại Đăng nhập"):
         st.session_state.current_view = 'login'
@@ -221,7 +192,6 @@ elif st.session_state.current_view == 'guest':
         
     st.title("Khám Phá Thế Giới Điện Ảnh")
     
-    # 1. Hiển thị Top phim Rate cao nhất
     st.markdown("### 🏆 Top Phim Được Đánh Giá Cao Nhất Mọi Thời Đại")
     st.caption("Dựa trên bình chọn của cộng đồng (yêu cầu trên 50 lượt đánh giá)")
     
@@ -237,5 +207,5 @@ elif st.session_state.current_view == 'guest':
             
     st.markdown("---")
     
-    # 2. Luôn hiển thị tính năng Tìm phim
+    # luon luon hien
     render_search_movie_ui()
