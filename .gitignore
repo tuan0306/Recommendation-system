@@ -28,4 +28,4 @@ result/
 .DS_Store
 Thumbs.db
 
-.streamlit/secrets.toml
+app/src/.streamlit/secrets.toml
