@@ -3,9 +3,15 @@ from pydantic import BaseModel,Field
 import numpy as np
 import pandas as pd
 import joblib
-from api.src.utils_backend import get_items_rated_by_user
 from pathlib import Path as FilePath
-from api.src.recommender import ContentBasedFiltering,HybridRecommender,NBCF
+
+import os
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+from utils_backend import get_items_rated_by_user
+from recommender import ContentBasedFiltering,HybridRecommender,NBCF
 
 current_file = FilePath(__file__).resolve()
 
