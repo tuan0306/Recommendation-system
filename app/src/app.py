@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-
+import os
 from client_api import search_all_movies_by_title, get_movie_title_by_id, get_items_rated_by_user, get_top_rated_movies,get_ratings_of_a_movie,recommend_similar_items,recommend_for_user
 from utils_ui import render_movie_grid,fetch_poster
 
@@ -34,7 +34,8 @@ def render_search_movie_ui():
 
                 col_img, col_info = st.columns([1, 3])
                 selected_title = str(get_movie_title_by_id(movie_id)).strip()
-                selected_poster = fetch_poster(selected_title)
+                _api_key=os.getenv('TMDB_KEY')
+                selected_poster = fetch_poster(selected_title,_api_key)
                 with col_img:
                     st.image(selected_poster, use_container_width=True)
                 with col_info:

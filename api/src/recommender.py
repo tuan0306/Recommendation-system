@@ -4,7 +4,7 @@ from sklearn.linear_model import Ridge
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import mean_squared_error
 
-from api.src.utils_backend import get_items_rated_by_user
+from src.utils_backend import get_items_rated_by_user
 
 class ContentBasedFiltering:
     def __init__(self,X_tfidf,n_users,_lambda=1.0):
