@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import concurrent.futures
+import os
 
 from client_api import get_movie_title_by_id
 
@@ -54,7 +55,7 @@ def render_movie_grid(recommendation_list, has_subtitle=False):
         movie_titles.append(title)
         movie_details.append({"title": title, "subtitle": subtitle})
     
-    API_KEY= st.secrets['TMDB_KEY']
+    API_KEY= os.getenv('TMDB_KEY')
     all_posters = fetch_multiple_posters(movie_titles,API_KEY)
     
     for i in range(0, len(movie_details), 5):

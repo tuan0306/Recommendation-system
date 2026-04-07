@@ -1,0 +1,19 @@
+services:
+  backend_api:
+    build: ./api
+    container_name: movie_recommendation_api
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+  
+  frontend_app:
+    build: ./app
+    container_name: movie_recommendation_app
+    ports:
+      - "8502:8501"
+    depends_on:
+      - backend_api
+    environment:
+      - TMDB_KEY=${TMDB_KEY}
+      - BASE_URL=http://backend_api:8000
+    restart: unless-stopped

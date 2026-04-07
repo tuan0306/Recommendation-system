@@ -29,3 +29,5 @@ result/
 Thumbs.db
 
 app/src/.streamlit/secrets.toml
+
+.env

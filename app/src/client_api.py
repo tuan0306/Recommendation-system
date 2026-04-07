@@ -2,8 +2,9 @@ import requests
 import pandas as pd
 import numpy as np
 import streamlit as st
+import os
  
-BASE_URL='http://localhost:8000'
+BASE_URL=os.getenv('BASE_URL','http://localhost:8000')
 
 @st.cache_data(show_spinner=False)
 def get_top_rated_movies(min_ratings=50,top=10):
