@@ -5,10 +5,9 @@ import concurrent.futures
 from client_api import get_movie_title_by_id
 
 @st.cache_data(show_spinner=False)
-def fetch_poster(movie_title):
+def fetch_poster(movie_title,_api_key):
     search_title = movie_title.split(' (')[0]
-    API_KEY= st.secrets['TMDB_KEY']
-    url = f"https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&query={search_title}"
+    url = f"https://api.themoviedb.org/3/search/movie?api_key={_api_key}&query={search_title}"
     try:
         response = requests.get(url)
         data = response.json()
@@ -19,25 +18,26 @@ def fetch_poster(movie_title):
     except Exception:
         pass
     return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/500px-No-Image-Placeholder.svg.png"
-def fetch_multiple_posters(movie_ids):
+
+
+def fetch_multiple_posters(movie_titles,_api_key):
     """
     Hàm này nhận vào một List các ID phim và tải tất cả Poster cùng một lúc.
     """
     posters = {}
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_id = {executor.submit(fetch_poster, m_id): m_id for m_id in movie_ids}
-        for future in concurrent.futures.as_completed(future_to_id):
-            m_id = future_to_id[future]
+        future_to_title = {executor.submit(fetch_poster, title, _api_key): title for title in movie_titles}
+        for future in concurrent.futures.as_completed(future_to_title):
+            title = future_to_title[future]
             try:
-                posters[m_id] = future.result()
+                posters[title] = future.result()
             except Exception:
-                posters[m_id] = "https://via.placeholder.com/342x513?text=No+Poster"
+                posters[title] = "https://via.placeholder.com/342x513?text=No+Poster"
                 
-    return [posters[m_id] for m_id in movie_ids]
+    return [posters[title] for title in movie_titles]
 
 def render_movie_grid(recommendation_list, has_subtitle=False):
-    """Hàm hỗ trợ in danh sách phim thành lưới 5 cột siêu tốc"""
     movie_titles = []
     movie_details = [] 
     
@@ -54,7 +54,8 @@ def render_movie_grid(recommendation_list, has_subtitle=False):
         movie_titles.append(title)
         movie_details.append({"title": title, "subtitle": subtitle})
     
-    all_posters = fetch_multiple_posters(movie_titles)
+    API_KEY= st.secrets['TMDB_KEY']
+    all_posters = fetch_multiple_posters(movie_titles,API_KEY)
     
     for i in range(0, len(movie_details), 5):
         cols = st.columns(5)

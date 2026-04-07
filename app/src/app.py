@@ -13,11 +13,6 @@ if 'current_view' not in st.session_state:
 if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 
-@st.cache_data
-def cached_top_rated_movies(min_ratings=50, top_n=10):
-    """Lấy top phim có điểm trung bình cao nhất (điều kiện: số người đánh giá >= 50)"""
-    return get_top_rated_movies(min_ratings,top_n)
-
 # giao dien tim kiem phim
 def render_search_movie_ui():
     st.markdown("### 🔍 Khám phá Phim Tương Tự")
@@ -112,14 +107,15 @@ elif st.session_state.current_view == 'logged_in':
     rated_items, rated_scores = get_items_rated_by_user(u_id)
     if len(rated_items) > 0:
         st.markdown("### 🕒 Phim bạn đánh giá cao nhất")
-        top_rated_idx = np.argsort(rated_scores)[-5:][::-1]
-        user_top_movies = []
-        for idx in top_rated_idx:
-            m_id = int(rated_items[idx])
-            score = rated_scores[idx]
-            user_top_movies.append((m_id, f"⭐ **{score}/5**"))
-        
-        render_movie_grid(user_top_movies, has_subtitle=True)
+        with st.spinner('Đang tìm kiếm lịch sử đánh giá phim...'):
+            top_rated_idx = np.argsort(rated_scores)[-5:][::-1]
+            user_top_movies = []
+            for idx in top_rated_idx:
+                m_id = int(rated_items[idx])
+                score = rated_scores[idx]
+                user_top_movies.append((m_id, f"⭐ **{score}/5**"))
+            
+            render_movie_grid(user_top_movies, has_subtitle=True)
     
     st.markdown("---")
     
@@ -145,15 +141,16 @@ elif st.session_state.current_view == 'guest':
     st.markdown("### 🏆 Top Phim Được Đánh Giá Cao Nhất Mọi Thời Đại")
     st.caption("Dựa trên bình chọn của cộng đồng (yêu cầu trên 50 lượt đánh giá)")
     
-    top_movies_df = cached_top_rated_movies()
-    top_movies_list = []
-    for index, row in top_movies_df.iterrows():
-        item_id = int(row['movie_id'])
-        score = row['rating_mean']
-        count = int(row['rating_count'])
-        subtitle_text = f"⭐ {score:.1f} ({count} rate)"
-        top_movies_list.append((item_id,subtitle_text))
-    render_movie_grid(top_movies_list, has_subtitle=True)
+    with st.spinner("Đang tải danh sách phim..."):
+        top_movies_df = get_top_rated_movies()
+        top_movies_list = []
+        for index, row in top_movies_df.iterrows():
+            item_id = int(row['movie_id'])
+            score = row['rating_mean']
+            count = int(row['rating_count'])
+            subtitle_text = f"⭐ {score:.1f} ({count} rate)"
+            top_movies_list.append((item_id,subtitle_text))
+        render_movie_grid(top_movies_list, has_subtitle=True)
             
     st.markdown("---")
     
