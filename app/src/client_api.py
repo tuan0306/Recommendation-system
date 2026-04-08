@@ -6,7 +6,7 @@ import os
  
 BASE_URL=os.getenv('BASE_URL','http://localhost:8000')
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def get_top_rated_movies(min_ratings=50,top=10):
     API_URL=f'{BASE_URL}/movies/top-rated'
     response=requests.get(API_URL,params={'min_ratings':min_ratings,'top':top})
@@ -14,7 +14,7 @@ def get_top_rated_movies(min_ratings=50,top=10):
     result=response.json()
     return pd.DataFrame(result['top_items'])
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def search_all_movies_by_title(movie_query):
     API_URL=f'{BASE_URL}/movies/search'
     response=requests.get(API_URL,params={'title':movie_query})
@@ -25,7 +25,7 @@ def search_all_movies_by_title(movie_query):
         return pd.DataFrame()
     return pd.DataFrame(list(movies_dict.items()), columns=['movie_id', 'title'])
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def get_movie_title_by_id(movie_id):
     API_URL=f'{BASE_URL}/movies/{movie_id}/title'
     response=requests.get(API_URL)
@@ -33,7 +33,7 @@ def get_movie_title_by_id(movie_id):
     result=response.json()
     return result['title']
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def get_ratings_of_a_movie(movie_id):
     API_URL=f'{BASE_URL}/movies/{movie_id}/ratings'
     response=requests.get(API_URL)
@@ -41,7 +41,7 @@ def get_ratings_of_a_movie(movie_id):
     result=response.json()
     return np.array(result['ratings'])
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def recommend_similar_items(movie_id,top=10,model_type='cb'):
     API_URL=f'{BASE_URL}/movies/{movie_id}/similar'
     response=requests.get(API_URL,params={'top':top,'model_type':model_type})
@@ -49,7 +49,7 @@ def recommend_similar_items(movie_id,top=10,model_type='cb'):
     result=response.json()
     return np.array(result['recommendations'])
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def get_items_rated_by_user(user_id):
     API_URL=f'{BASE_URL}/users/{user_id}/ratings'
     response=requests.get(API_URL)
@@ -57,7 +57,7 @@ def get_items_rated_by_user(user_id):
     result=response.json()
     return (np.array(result['item_id']),np.array(result['scores']))
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False,ttl=3600)
 def recommend_for_user(user_id,top=10):
     API_URL=f'{BASE_URL}/users/{user_id}/recommend'
     response=requests.get(API_URL,params={'top':top})
