@@ -16,7 +16,7 @@ if 'user_id' not in st.session_state:
 # giao dien tim kiem phim
 def render_search_movie_ui():
     st.markdown("### 🔍 Khám phá Phim Tương Tự")
-    movie_query = st.text_input("Nhập tên phim bạn yêu thích và ấn Enter (VD: Toy Story, Star....):")
+    movie_query = st.text_input("Nhập tên phim bạn yêu thích và ấn Enter (VD: Toy Story, Star...):")
     
     if movie_query:
         matches = search_all_movies_by_title(movie_query)
