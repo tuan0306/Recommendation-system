@@ -16,6 +16,8 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           script: |
             cd ~/Recommendation-system
+            git fetch --all
+            git reset --hard origin/main
             git pull origin main
             sudo docker compose up -d --build
             sudo docker image prune -f
