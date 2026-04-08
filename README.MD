@@ -117,19 +117,6 @@ Follow these steps to get the system up and running on your local machine.
 * **Python 3.9+** (For manual installation)
 * **Git**
 
----
-
-## 🚀 How to Run
-
-Follow these steps to get the system up and running on your local machine.
-
-### 📋 Prerequisites
-* **Docker** & **Docker Compose** (Recommended)
-* **Python 3.9+** (For manual installation)
-* **Git**
-
----
-
 ### 📥 Step 1: Clone the Project
 First, download the repository to your local machine:
 ```bash
