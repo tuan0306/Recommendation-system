@@ -70,7 +70,6 @@ The system follows a modern DevOps workflow:
 ## 📁 Project Structure
 
 ```text
-## 📁 Project Structure
 Recommendation-system
 ├── .github/workflows/         
 │   └── deploy.yml           # Automated CI/CD deployment pipeline
